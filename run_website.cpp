@@ -12,6 +12,7 @@ int main() {
         string response_body;
 
         const unsigned int default_goods_number = 5;
+
         string user_name;
 
         if (request.get_request_method() == "GET") {
@@ -33,11 +34,11 @@ int main() {
             }
         }
 
-        nlohmann::json json_body;
+        nlohmann::json json_response_body;
 
         if (!user_name.empty()) {
             //fill with particular goods for current user
-            json_body["nickname"] = user_name;
+            json_response_body["nickname"] = user_name;
 
             unsigned int multiplier = 0;
             for (unsigned int current_char_number = 0; current_char_number < user_name.length(); current_char_number++) {
@@ -45,8 +46,8 @@ int main() {
             }
 
             for (unsigned int current_good_number = 0; current_good_number < user_name.length(); current_good_number++) {
-                json_body["items"][current_good_number]["name"] = user_name + to_string(current_good_number);
-                json_body["items"][current_good_number]["price"] = to_string((current_good_number + 1) * multiplier);
+                json_response_body["items"][current_good_number]["name"] = user_name + to_string(current_good_number);
+                json_response_body["items"][current_good_number]["price"] = to_string((current_good_number + 1) * multiplier);
             }
         }
         else {
@@ -54,13 +55,13 @@ int main() {
             unsigned int multiplier = 30;
 
             for (unsigned int current_good_number = 0; current_good_number < default_goods_number; current_good_number++) {
-                json_body["items"][current_good_number]["name"] = "default" + to_string(current_good_number);
-                json_body["items"][current_good_number]["price"] = to_string(current_good_number * multiplier);
+                json_response_body["items"][current_good_number]["name"] = "default" + to_string(current_good_number);
+                json_response_body["items"][current_good_number]["price"] = to_string(current_good_number * multiplier);
             }
         }
 
         //get string representation of the json body
-        response_body = json_body.dump();
+        response_body = json_response_body.dump();
 
         response.set_response_http_code(200);
         response.set_response_body(response_body);
