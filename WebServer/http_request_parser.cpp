@@ -288,6 +288,7 @@ namespace webserver {
 
         if (content_type_header.value.empty()) {
             cerr << "No Content-Type header was given to parse request body";
+            return;
         }
 
         string content_type_value = content_type_header.value;

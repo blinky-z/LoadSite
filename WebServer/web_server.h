@@ -49,15 +49,16 @@ namespace webserver {
                 index_end_of_headers += 4;
 
                 regex rx("[^\r\n]+\r\n");
-                sregex_iterator formated_headers_list(client_message.begin() + index_start_of_headers, client_message.begin() + index_end_of_headers, rx), rxend;
+                sregex_iterator formated_headers_list(client_message.begin() + index_start_of_headers,
+                                                      client_message.begin() + index_end_of_headers, rx), rxend;
 
-                while(formated_headers_list != rxend) {
+                while (formated_headers_list != rxend) {
                     string current_header = formated_headers_list->str();
 
                     unsigned long index_end_of_header_type = current_header.find(':');
                     unsigned long index_start_of_header_value = index_end_of_header_type + 1;
 
-                    while (index_start_of_header_value == ' ') {
+                    while (current_header[index_start_of_header_value] == ' ') {
                         index_start_of_header_value++;
                     }
 
@@ -76,17 +77,18 @@ namespace webserver {
                     formated_headers_list++;
                 }
 
+                //if body exists
                 if (!headers["content-length"].empty()) {
                     unsigned long body_size = stol(headers["content-length"]);
 
-                    if (body_size != 0) {
-                        if (client_message.size() - index_end_of_headers != body_size) {
-                            return false;
-                        }
+                    if (client_message.size() - index_end_of_headers != body_size) {
+                        return false;
                     }
                 }
+
                 return true;
             }
+
             return false;
         };
 
