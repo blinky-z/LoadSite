@@ -1,6 +1,7 @@
 #include "nlohmann/json.hpp"
 #include "WebServer/web_server.h"
 #include <iostream>
+#include <cassert>
 using namespace std;
 
 unsigned short int PORT = 8080;
@@ -62,9 +63,9 @@ int main() {
 
     string response_body = received_message.substr(received_message.find("\r\n\r\n") + 4);
 
-    nlohmann::json j = nlohmann::json::parse(response_body);
+    nlohmann::json json_response_body = nlohmann::json::parse(response_body);
 
-    cout << "[Client] Response body:" << endl << j.dump(4) << endl;
+    cout << "[Client] Response body:" << endl << json_response_body.dump(4) << endl;
 
     cout << endl << "---------------------" << endl << endl;
 
@@ -95,9 +96,9 @@ int main() {
 
     response_body = received_message.substr(received_message.find("\r\n\r\n") + 4);
 
-    j = nlohmann::json::parse(response_body);
+    json_response_body = nlohmann::json::parse(response_body);
 
-    cout << "[Client] Response body:" << endl << j.dump(4) << endl;
+    cout << "[Client] Response body:" << endl << json_response_body.dump(4) << endl;
 
     //pass name as a query param
     message = "GET /?name=petya HTTP/1.1\r\n"
@@ -120,9 +121,9 @@ int main() {
 
     response_body = received_message.substr(received_message.find("\r\n\r\n") + 4);
 
-    j = nlohmann::json::parse(response_body);
+    json_response_body = nlohmann::json::parse(response_body);
 
-    cout << "[Client] Response body:" << endl << j.dump(4) << endl;
+    cout << "[Client] Response body:" << endl << json_response_body.dump(4) << endl;
 
     //get default goods
     message = "GET / HTTP/1.1\r\n"
@@ -145,7 +146,70 @@ int main() {
 
     response_body = received_message.substr(received_message.find("\r\n\r\n") + 4);
 
-    j = nlohmann::json::parse(response_body);
+    json_response_body = nlohmann::json::parse(response_body);
 
-    cout << "[Client] Response body:" << endl << j.dump(4) << endl;
+    cout << "[Client] Response body:" << endl << json_response_body.dump(4) << endl;
+
+    //test buying(failure result test)
+    nlohmann::json json_request_body;
+    json_request_body["name"] = "good1";
+
+    request_body = "json=" + json_request_body.dump();
+
+    message = "POST /buy HTTP/1.1\r\n"
+              "Host: localhost:8080\r\n"
+              "Content-Type: application/x-www-form-urlencoded\r\n"
+              "Content-Length: " + to_string(request_body.size()) + "\r\n"
+                                                                    "\r\n";
+
+    message += request_body;
+
+    if (write(sockfd, message.c_str(), message.size()) == -1) {
+        cout << "[Client] Message sending failure" << endl;
+    }
+    else {
+        cout << "[Client] Message was sent to server" << endl;
+    }
+
+    memset(&buffer, 0, 128000);
+    read(sockfd, buffer, 128000);
+
+    received_message = string(buffer);
+
+    response_body = received_message.substr(received_message.find("\r\n\r\n") + 4);
+
+    json_response_body = nlohmann::json::parse(response_body);
+
+    assert(json_response_body["result"] == "failure");
+
+    //test buying(success result test)
+    json_request_body["name"] = "good12";
+
+    request_body = "json=" + json_request_body.dump();
+
+    message = "POST /buy HTTP/1.1\r\n"
+              "Host: localhost:8080\r\n"
+              "Content-Type: application/x-www-form-urlencoded\r\n"
+              "Content-Length: " + to_string(request_body.size()) + "\r\n"
+                                                                    "\r\n";
+
+    message += request_body;
+
+    if (write(sockfd, message.c_str(), message.size()) == -1) {
+        cout << "[Client] Message sending failure" << endl;
+    }
+    else {
+        cout << "[Client] Message was sent to server" << endl;
+    }
+
+    memset(&buffer, 0, 128000);
+    read(sockfd, buffer, 128000);
+
+    received_message = string(buffer);
+
+    response_body = received_message.substr(received_message.find("\r\n\r\n") + 4);
+
+    json_response_body = nlohmann::json::parse(response_body);
+
+    assert(json_response_body["result"] == "success");
 }
