@@ -27,11 +27,13 @@ int main() {
         }
         if (request.get_request_method() == "POST") {
             const map<string, string>& request_body = request.get_request_body();
-            for (auto current_param : request_body) {
-                if (current_param.first == "name") {
-                    user_name = current_param.second;
-                    break;
-                }
+
+            string raw_json_body = request_body.begin()->second;
+
+            nlohmann::json json_request_body = nlohmann::json::parse(raw_json_body);
+
+            if (json_request_body.find("name") != json_request_body.end()) {
+                user_name = json_request_body["name"];
             }
         }
 
