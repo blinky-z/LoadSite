@@ -2,8 +2,8 @@
 
 namespace webserver {
     tcp_server::tcp_server(unsigned short int PORT, const function<bool(string)>& is_full_message,
-                           const function<string(string)>& convert_client_message, unsigned int allowed_connections_number) :
-            PORT(PORT), allowed_connections_number(allowed_connections_number), is_full_message(is_full_message),
+                           const function<string(string)>& convert_client_message) :
+            PORT(PORT), is_full_message(is_full_message),
             convert_client_message(convert_client_message) {
         accept_connections = true;
     }

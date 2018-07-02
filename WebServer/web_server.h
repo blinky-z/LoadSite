@@ -27,8 +27,6 @@ using namespace std;
 namespace webserver {
     class web_server {
     private:
-        unsigned int allowed_connections_number = 30;
-
         vector<web_handler> handlers;
 
         http_router request_handler_router;
