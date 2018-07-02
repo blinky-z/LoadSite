@@ -15,6 +15,7 @@ int main() {
 
         string user_name;
 
+        //set user name if it exists
         if (request.get_request_method() == "GET") {
             const vector<webserver::request_param> request_parameters = request.get_request_params();
             for (auto current_request_parameter : request_parameters) {
@@ -41,8 +42,8 @@ int main() {
             json_response_body["nickname"] = user_name;
 
             unsigned int multiplier = 0;
-            for (unsigned int current_char_number = 0; current_char_number < user_name.length(); current_char_number++) {
-                multiplier += user_name[current_char_number];
+            for (char current_char_number : user_name) {
+                multiplier += current_char_number;
             }
 
             for (unsigned int current_good_number = 0; current_good_number < user_name.length(); current_good_number++) {
@@ -73,9 +74,6 @@ int main() {
 
         return response;
     };
-
-    webserver::web_handler get_goods_get_request("/", "GET", put_goods);
-    webserver::web_handler get_goods_post_request("/", "POST", put_goods);
 
     function<webserver::http_response(webserver::http_request)> buy_goods_check = [&](webserver::http_request request) {
         webserver::http_response response;
@@ -109,6 +107,8 @@ int main() {
         return response;
     };
 
+    webserver::web_handler get_goods_get_request("/", "GET", put_goods);
+    webserver::web_handler get_goods_post_request("/", "POST", put_goods);
     webserver::web_handler buy_goods("/buy", "POST", buy_goods_check);
 
     handlers.emplace_back(get_goods_get_request);
