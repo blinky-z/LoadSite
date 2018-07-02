@@ -16,7 +16,7 @@ int main() {
         string user_name;
 
         //set user name if it exists
-        if (request.get_request_method() == "GET") {
+            if (request.get_request_method() == "GET") {
             const vector<webserver::request_param> request_parameters = request.get_request_params();
             for (auto current_request_parameter : request_parameters) {
                 if (current_request_parameter.name == "name") {
