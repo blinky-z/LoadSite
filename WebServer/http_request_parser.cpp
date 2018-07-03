@@ -61,8 +61,8 @@ namespace webserver {
         vector<string> decoded_request_body;
 
         for (auto& current_line : raw_request_body) {
-            char* a = curl_easy_unescape(c, current_line.c_str(), 0, 0);
-            decoded_request_body.emplace_back(string(a));
+            char* decoded_line = curl_easy_unescape(c, current_line.c_str(), 0, 0);
+            decoded_request_body.emplace_back(string(decoded_line));
         }
 
         char parameters_delimiter = '&';
