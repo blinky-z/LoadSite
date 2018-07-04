@@ -55,16 +55,26 @@ namespace webserver {
     string http_request_parser::unescape_string(const string& escaped_string) {
         string unescaped_string;
 
-        for (unsigned long current_char_position = 0; current_char_position < escaped_string.size(); current_char_position++) {
+        unsigned int hexadecimal_char_length = 3;
+
+        for (unsigned long current_char_position = 0; current_char_position < escaped_string.size(); ) {
             char current_char = escaped_string[current_char_position];
 
             if (current_char == '+') {
                 unescaped_string.push_back(' ');
-            }
 
-            if (current_char == '%' && escaped_string.size() - current_char_position >= 3) {
+                current_char_position++;
+            }
+            else if (current_char == '%' && escaped_string.size() - current_char_position >= hexadecimal_char_length) {
                 char unescaped_char = static_cast<char>(stoi("0x" + escaped_string.substr(current_char_position + 1, 2), nullptr, 16));
                 unescaped_string.push_back(unescaped_char);
+
+                current_char_position += hexadecimal_char_length;
+            }
+            else {
+                unescaped_string.push_back(current_char);
+
+                current_char_position++;
             }
         }
 
