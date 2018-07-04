@@ -56,14 +56,17 @@ namespace webserver {
     }
 
     void http_request_parser::parse_urlencoded_body(http_request &post_request, const vector<string> &raw_request_body) {
-        CURL* c = curl_easy_init();
+        CURL* curl_handler = curl_easy_init();
 
         vector<string> decoded_request_body;
 
         for (auto& current_line : raw_request_body) {
-            char* decoded_body_part = curl_easy_unescape(c, current_line.c_str(), 0, 0);
+            char* decoded_body_part = curl_easy_unescape(curl_handler, current_line.c_str(), 0, 0);
             decoded_request_body.emplace_back(string(decoded_body_part));
+            free(decoded_body_part);
         }
+
+        curl_easy_cleanup(curl_handler);
 
         char parameters_delimiter = '&';
         char key_value_delimiter = '=';
