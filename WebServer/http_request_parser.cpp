@@ -8,21 +8,10 @@ namespace webserver {
         vector<string> raw_request_body;
         string body;
 
-        unsigned long index_start_of_body;
+        auto index_start_of_body = find(raw_request.begin(), raw_request.end(), "\r\n") + 1;
 
-        for (unsigned long current_request_line_number = 0; current_request_line_number < raw_request.size();
-                current_request_line_number++) {
-
-            if (raw_request[current_request_line_number] == "\r\n") {
-                index_start_of_body = current_request_line_number + 1;
-                break;
-            }
-        }
-
-        for (unsigned long current_request_line_number = index_start_of_body;
-                current_request_line_number < raw_request.size(); current_request_line_number++) {
-
-            body += raw_request[current_request_line_number];
+        for (auto current_line = index_start_of_body; current_line != raw_request.end(); current_line++) {
+            body += *current_line;
         }
 
         //add "\r\n" to the end of raw body to correct body splitting
