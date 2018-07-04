@@ -3,7 +3,7 @@
 using namespace std;
 
 namespace webserver {
-    //split request body into vector of strings for ease of parsing of request body
+    //split request body into vector of strings for ease of request body parsing
     vector<string> http_request_parser::get_splitted_raw_request_body(const vector<string>& raw_request) {
         vector<string> raw_request_body;
         string body;
@@ -42,6 +42,7 @@ namespace webserver {
 
     http_request_parser::content_type http_request_parser::parse_content_type_header
             (const string& raw_content_type_header) {
+
         pair<string, map<string, string>> parsed_content_type_header =
                 parameterized_header_parser.parse_parameterized_header(raw_content_type_header);
 
@@ -52,6 +53,7 @@ namespace webserver {
 
     http_request_parser::content_disposition http_request_parser::parse_content_disposition_header
             (const string& raw_content_disposition_header) {
+
         pair<string, map<string, string>> parsed_content_disposition_header =
                 parameterized_header_parser.parse_parameterized_header(raw_content_disposition_header);
 
@@ -90,8 +92,7 @@ namespace webserver {
         return unescaped_string;
     }
 
-    void http_request_parser::parse_urlencoded_body
-            (http_request &post_request, const vector<string> &raw_request_body) {
+    void http_request_parser::parse_urlencoded_body(http_request &post_request, const vector<string> &raw_request_body) {
 
         vector<string> unescaped_request_body;
 
