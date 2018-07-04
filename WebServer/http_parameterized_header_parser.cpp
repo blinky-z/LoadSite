@@ -13,14 +13,17 @@ namespace webserver {
         parsed_parameterized_header.second.emplace(key, value);
     }
 
-    pair<string, map<string, string>> http_request_parameterized_header_parser::parse_parameterized_header(const string& raw_parameterized_header) {
+    pair<string, map<string, string>> http_request_parameterized_header_parser::parse_parameterized_header
+            (const string& raw_parameterized_header) {
+
         pair<string, map<string, string>> parsed_parameterized_header;
 
         char parameters_delimiter = ';';
 
         size_t index_begin_of_new_parameter = raw_parameterized_header.find(parameters_delimiter);
 
-        string type = (index_begin_of_new_parameter != string::npos) ? raw_parameterized_header.substr(0, index_begin_of_new_parameter) : raw_parameterized_header;
+        string type = (index_begin_of_new_parameter != string::npos) ?
+                raw_parameterized_header.substr(0, index_begin_of_new_parameter) : raw_parameterized_header;
 
         set_parameterized_header_type(parsed_parameterized_header, type);
 
@@ -39,7 +42,9 @@ namespace webserver {
                 begin_of_parameter++;
             }
 
-            while ((index_begin_of_new_parameter = raw_parameterized_header.find(';', index_begin_of_new_parameter + 1)) != string::npos) {
+            while ((index_begin_of_new_parameter = raw_parameterized_header.find(';', index_begin_of_new_parameter + 1))
+                    != string::npos) {
+
                 end_of_parameter = index_begin_of_new_parameter;
                 parameter = raw_parameterized_header.substr(begin_of_parameter, end_of_parameter - begin_of_parameter);
 

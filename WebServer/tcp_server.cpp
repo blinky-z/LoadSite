@@ -118,7 +118,8 @@ namespace webserver {
             }
             if (message_size == -1) {
                 if (!accept_connections) {
-                    cerr << "Unable to receive message from client with id " << cl->get_id() << ". Server has been shut down. Stop receiving messages from this client" << endl;
+                    cerr << "Unable to receive message from client with id " << cl->get_id()
+                         << ". Server has been shut down. Stop receiving messages from this client" << endl;
                 }
                 else {
                     cerr << "Error while receiving message from client with id " << cl->get_id() << endl;

@@ -68,7 +68,9 @@ namespace webserver {
         for (const auto& current_web_handler : handlers) {
             const string& current_web_handler_pattern = current_web_handler.get_web_handler_pattern();
             const string& current_web_handler_method = current_web_handler.get_web_handler_method();
-            if (current_web_handler_method == client_request_method && current_web_handler_pattern == client_request_pattern) {
+            if (current_web_handler_method == client_request_method &&
+                current_web_handler_pattern == client_request_pattern) {
+
                 return current_web_handler;
             }
         }

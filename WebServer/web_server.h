@@ -94,16 +94,16 @@ namespace webserver {
             vector<string> message_fields;
             string buffer;
 
-            //add "\r\n" to the end for correct spliting of the client message
+            //add "\r\n" to the end to correct client's messages splitting
             raw_client_message += "\r\n";
 
             regex rx("[^\r\n]+\r\n|\r\n");
-            sregex_iterator formated_body_list(raw_client_message.begin(), raw_client_message.end(), rx), rxend;
+            sregex_iterator formatted_body_list(raw_client_message.begin(), raw_client_message.end(), rx), rxend;
 
-            while(formated_body_list != rxend) {
-                const string& current_line = formated_body_list->str();
+            while(formatted_body_list != rxend) {
+                const string& current_line = formatted_body_list->str();
                 message_fields.emplace_back(current_line.substr(0));
-                ++formated_body_list;
+                ++formatted_body_list;
             }
 
             http_request request = parser.parse_request(message_fields);
