@@ -25,7 +25,7 @@ namespace webserver {
             body += raw_request[current_request_line_number];
         }
 
-        //add "\r\n" to the end for correct spliting the body
+        //add "\r\n" to the end of raw body to correct body splitting
         body += "\r\n";
 
         regex rx("[^\r\n]+\r\n");
