@@ -59,12 +59,15 @@ namespace webserver {
         return response_status_line;
     }
 
-    void http_response_builder::add_response_status_line(const http_response& response, string& converted_to_string_response) {
+    void http_response_builder::add_response_status_line
+            (const http_response& response, string& converted_to_string_response) {
+
         converted_to_string_response += build_response_status_line(response) + "\r\n";
     }
 
-    void http_response_builder::add_response_header_fields(const http_response &response,
-                                                           string &converted_to_string_response) {
+    void http_response_builder::add_response_header_fields
+            (const http_response &response, string &converted_to_string_response) {
+
         const vector<http_header>& response_headers = response.get_response_headers();
 
         for (const http_header& current_header : response_headers) {
