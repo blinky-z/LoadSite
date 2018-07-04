@@ -11,7 +11,6 @@ add_executable(LoadSite WebServer/web_server.h WebServer/http_request.h WebServe
         WebServer/http_response_builder.h WebServer/http_parameterized_header_parser.cpp WebServer/http_parameterized_header_parser.h
         WebServer/client.cpp WebServer/client.h
         run_website.cpp
-#        simple_client.cpp
         )
 
 target_link_libraries(LoadSite curl)
