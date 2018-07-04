@@ -1,4 +1,3 @@
-#include <curl/curl.h>
 #include "web_server.h"
 
 namespace webserver {
@@ -7,7 +6,6 @@ namespace webserver {
     //Запуск web-server.
     //Функция должна блокировать поток, в котором она была запущена, чтобы веб-сервер не прекращал работу мгновенно.
     void web_server::start() {
-        curl_global_init(CURL_GLOBAL_ALL);
         server.start();
     }
 

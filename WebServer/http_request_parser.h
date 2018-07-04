@@ -4,6 +4,8 @@
 #include "http_parameterized_header_parser.h"
 #include <string>
 #include <sstream>
+#include <regex>
+#include <iostream>
 
 namespace webserver {
     class http_request_parser {
@@ -41,6 +43,8 @@ namespace webserver {
         content_disposition parse_content_disposition_header(const string& raw_content_disposition_header);
 
         content_type parse_content_type_header(const string& raw_content_type_header);
+
+        string unescape_string(const string& escaped_string);
 
         void parse_urlencoded_body(http_request& post_request, const vector<string>& raw_request_body);
 

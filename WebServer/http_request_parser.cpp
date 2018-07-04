@@ -1,6 +1,3 @@
-#include <regex>
-#include <iostream>
-#include "curl/curl.h"
 #include "http_request_parser.h"
 
 using namespace std;
@@ -55,18 +52,33 @@ namespace webserver {
         return converted_header;
     }
 
-    void http_request_parser::parse_urlencoded_body(http_request &post_request, const vector<string> &raw_request_body) {
-        CURL* curl_handler = curl_easy_init();
+    string http_request_parser::unescape_string(const string& escaped_string) {
+        string unescaped_string;
 
-        vector<string> decoded_request_body;
+        for (unsigned long current_char_position = 0; current_char_position < escaped_string.size(); current_char_position++) {
+            char current_char = escaped_string[current_char_position];
 
-        for (auto& current_line : raw_request_body) {
-            char* decoded_body_part = curl_easy_unescape(curl_handler, current_line.c_str(), 0, 0);
-            decoded_request_body.emplace_back(string(decoded_body_part));
-            free(decoded_body_part);
+            if (current_char == '+') {
+                unescaped_string.push_back(' ');
+            }
+
+            if (current_char == '%' && escaped_string.size() - current_char_position >= 3) {
+                char unescaped_char = static_cast<char>(stoi("0x" + escaped_string.substr(current_char_position + 1, 2), nullptr, 16));
+                unescaped_string.push_back(unescaped_char);
+            }
         }
 
-        curl_easy_cleanup(curl_handler);
+        return unescaped_string;
+    }
+
+    void http_request_parser::parse_urlencoded_body(http_request &post_request, const vector<string> &raw_request_body) {
+
+        vector<string> unescaped_request_body;
+
+        for (auto& current_line : raw_request_body) {
+            string unescaped_body_part = unescape_string(current_line);
+            unescaped_request_body.emplace_back(unescaped_body_part);
+        }
 
         char parameters_delimiter = '&';
         char key_value_delimiter = '=';
@@ -76,7 +88,7 @@ namespace webserver {
 
         bool key_appeared = true;
 
-        for (const auto& current_line : decoded_request_body) {
+        for (const auto& current_line : unescaped_request_body) {
             for (const auto& current_char : current_line) {
                 if (current_char == parameters_delimiter) {
                     key_appeared = true;
@@ -100,8 +112,6 @@ namespace webserver {
 
         post_request.add_request_body_field(key, value);
     }
-
-
 
     bool http_request_parser::check_if_current_request_body_line_is_end_boundary(const string& line, const string& boundary) {
         return line.find("--" + boundary + "--") == 0;

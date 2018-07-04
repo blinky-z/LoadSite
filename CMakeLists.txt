@@ -12,5 +12,3 @@ add_executable(LoadSite WebServer/web_server.h WebServer/http_request.h WebServe
         WebServer/client.cpp WebServer/client.h
         run_website.cpp
         )
-
-target_link_libraries(LoadSite curl)
