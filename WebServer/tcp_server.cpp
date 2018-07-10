@@ -45,7 +45,7 @@ namespace webserver {
                 return index;
             }
         }
-        cerr << "Client with id " << cl->get_id() << " not found" << endl;
+        cerr << "Client with id " << cl->get_id() << " was not found" << endl;
         return -1;
     }
 
@@ -84,8 +84,8 @@ namespace webserver {
                     cout << "----------------------------" << endl << endl;
 
                     if (send(cl->sock, response_message.c_str(), response_message.size(), 0) == -1) {
-                        cout << "[Server] Message sending to client with id " << cl->get_id() << " failed" << endl;
-                        cout << "============================" << endl << endl;
+                        cerr << "[Server] Message sending to client with id " << cl->get_id() << " failed" << endl;
+                        cerr << "============================" << endl << endl;
                     }
                     else {
                         cout << "[Server] Message has been sent to client with id " << cl->get_id() << endl;
@@ -98,7 +98,14 @@ namespace webserver {
             if (message_size == 0) {
                 // client disconnect
                 cout << "Client with id " << cl->get_id() << " has been disconnected" << endl;
-                close(cl->sock);
+
+                if (close(cl->sock) != -1) {
+                    cout << "Server side socket related to the client with id " << cl->get_id() << " has been closed" << endl;
+                }
+                else {
+                    cerr << "Unable to close server side socket related to the client with id " << cl->get_id() <<
+                         " Error message: " << strerror(errno) << endl;
+                }
 
                 //remove client from the clients <vector>
                 mx.lock();
@@ -122,9 +129,9 @@ namespace webserver {
                          << ". Server has been shut down. Stop receiving messages from this client" << endl;
                 }
                 else {
-                    cerr << "Error while receiving message from client with id " << cl->get_id() << endl;
+                    cerr << "Error while receiving message from client with id " << cl->get_id()
+                         << " Error message: " << strerror(errno) << endl;
                 }
-                cerr << strerror(errno) << endl;
             }
         }
     }
@@ -149,9 +156,10 @@ namespace webserver {
                 handling_thread.detach();
             }
             else {
-                cout << "----------------------------" << endl << endl;
-                cout << "[Server] Socket accept failed" << endl << endl;
-                cout << "----------------------------" << endl << endl;
+                cerr << "----------------------------" << endl << endl;
+                cerr << "[Server] Socket accept failed" << endl << endl;
+                cerr << strerror(errno) << endl;
+                cerr << "----------------------------" << endl << endl;
             }
         }
     }
@@ -159,15 +167,26 @@ namespace webserver {
     void tcp_server::stop() {
         accept_connections = false;
 
-        close(listener_socket);
-        cout << "[Server Stop] Main server's listener socket has been closed" << endl;
-        cout << "[Server Stop] Server has been terminated" << endl;
+        if (close(listener_socket) != -1) {
+            cout << "[Server Stop] Main server's listener socket has been closed" << endl;
+            cout << "[Server Stop] Server has been terminated" << endl;
+
+        }
+        else {
+            cerr << "[Server Stop] Unable to close main server's listener socket"
+                 << " Error message: " << strerror(errno) << endl;
+        }
 
         mx.lock();
         for (auto& cl : clients) {
             // client disconnect
-            cout << "[Server Stop] Connection with client with id " << cl.get_id() << " has been closed" << endl;
-            close(cl.sock);
+            if (close(cl.sock) != -1) {
+                cout << "[Server Stop] Connection with client with id " << cl.get_id() << " has been closed" << endl;
+            }
+            else {
+                cerr << "[Server Stop] Unable to close connection with client with id " << cl.get_id()
+                     << " Error message: " << strerror(errno) << endl;
+            }
         }
         mx.unlock();
     }
