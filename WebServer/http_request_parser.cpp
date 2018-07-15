@@ -20,7 +20,7 @@ namespace webserver {
         regex rx("[^\r\n]+\r\n");
         sregex_iterator formated_body_list(body.begin(), body.end(), rx), rxend;
 
-        while(formated_body_list != rxend) {
+        while (formated_body_list != rxend) {
             const string& current_line = formated_body_list->str();
             raw_request_body.emplace_back(current_line.substr(0, current_line.length() - 2));
             ++formated_body_list;
@@ -81,7 +81,8 @@ namespace webserver {
         return unescaped_string;
     }
 
-    void http_request_parser::parse_urlencoded_body(http_request &post_request, const vector<string> &raw_request_body) {
+    void
+    http_request_parser::parse_urlencoded_body(http_request& post_request, const vector<string>& raw_request_body) {
 
         vector<string> unescaped_request_body;
 
@@ -116,7 +117,7 @@ namespace webserver {
                     continue;
                 }
 
-                key_appeared ? key.push_back(current_char) :  value.push_back(current_char);
+                key_appeared ? key.push_back(current_char) : value.push_back(current_char);
             }
         }
 
@@ -136,7 +137,7 @@ namespace webserver {
     }
 
     void http_request_parser::parse_formdata_body
-            (http_request &post_request, const vector<string>& raw_request_body, const string& boundary) {
+            (http_request& post_request, const vector<string>& raw_request_body, const string& boundary) {
 
         string key;
         string value;
@@ -239,8 +240,7 @@ namespace webserver {
 
             if (parameter_name_appeared) {
                 parameter_name.push_back(current_char);
-            }
-            else {
+            } else {
                 parameter_value.push_back(current_char);
             }
         }
@@ -286,18 +286,17 @@ namespace webserver {
         unsigned int index_start_of_headers = 1;
 
         for (auto current_message_line = raw_http_request.begin() + index_start_of_headers;
-                *current_message_line != headers_and_body_delimiter; current_message_line++) {
+             *current_message_line != headers_and_body_delimiter; current_message_line++) {
 
             string current_header_type;
             string current_header_value;
 
             for (size_t current_char_postion = 0; current_char_postion < current_message_line->size();
-                    current_char_postion++) {
+                 current_char_postion++) {
 
                 if ((*current_message_line)[current_char_postion] != header_type_and_value_delimiter) {
                     current_header_type.push_back((*current_message_line)[current_char_postion]);
-                }
-                else {
+                } else {
                     size_t value_start_position = current_char_postion + 1;
                     while ((*current_message_line)[value_start_position] == ' ') {
                         value_start_position++;
@@ -324,7 +323,7 @@ namespace webserver {
         return request_url[0] == '/';
     }
 
-    void http_request_parser::parse_post_request(http_request& post_request, const vector<string> &raw_request) {
+    void http_request_parser::parse_post_request(http_request& post_request, const vector<string>& raw_request) {
         const vector<string>& raw_request_body = get_splitted_raw_request_body(raw_request);
 
         const http_header& content_type_header = post_request.get_header("Content-Type");
@@ -340,13 +339,12 @@ namespace webserver {
 
         if (obj.type == "application/x-www-form-urlencoded") {
             parse_urlencoded_body(post_request, raw_request_body);
-        }
-        else {
+        } else {
             parse_formdata_body(post_request, raw_request_body, obj.parameters["boundary"]);
         }
     }
 
-    http_request http_request_parser::parse_request(const vector<string> &raw_request) {
+    http_request http_request_parser::parse_request(const vector<string>& raw_request) {
         http_request request;
 
         parse_request_line(request, raw_request);

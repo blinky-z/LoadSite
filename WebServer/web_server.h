@@ -100,7 +100,7 @@ namespace webserver {
             regex rx("[^\r\n]+\r\n|\r\n");
             sregex_iterator formatted_body_list(raw_client_message.begin(), raw_client_message.end(), rx), rxend;
 
-            while(formatted_body_list != rxend) {
+            while (formatted_body_list != rxend) {
                 const string& current_line = formatted_body_list->str();
                 message_fields.emplace_back(current_line.substr(0));
                 ++formatted_body_list;
@@ -111,7 +111,8 @@ namespace webserver {
             http_response response;
 
             web_handler suitable_web_handler = request_handler_router.get_suitable_request_handler(handlers, request);
-            const function<http_response(http_request)>& handler = suitable_web_handler.get_transform_to_response_function();
+            const function<http_response(
+                    http_request)>& handler = suitable_web_handler.get_transform_to_response_function();
 
             response = handler(request);
 

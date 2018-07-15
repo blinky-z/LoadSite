@@ -20,9 +20,10 @@ namespace webserver {
 
         void add_content_length_header(const http_response& response, string& converted_to_string_response);
 
-        void add_response_header_fields(const http_response &response, string &converted_to_string_response);
+        void add_response_header_fields(const http_response& response, string& converted_to_string_response);
 
         void add_response_body(const http_response& response, string& converted_to_string_response);
+
     public:
         http_response_builder();
 

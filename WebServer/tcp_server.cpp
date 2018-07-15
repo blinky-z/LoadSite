@@ -86,8 +86,7 @@ namespace webserver {
                     if (send(cl->sock, response_message.c_str(), response_message.size(), 0) == -1) {
                         cerr << "[Server] Message sending to client with id " << cl->get_id() << " failed" << endl;
                         cerr << "============================" << endl << endl;
-                    }
-                    else {
+                    } else {
                         cout << "[Server] Message has been sent to client with id " << cl->get_id() << endl;
                         cout << "============================" << endl << endl;
                     }
@@ -100,9 +99,9 @@ namespace webserver {
                 cout << "Client with id " << cl->get_id() << " has been disconnected" << endl;
 
                 if (close(cl->sock) != -1) {
-                    cout << "Server side socket related to the client with id " << cl->get_id() << " has been closed" << endl;
-                }
-                else {
+                    cout << "Server side socket related to the client with id " << cl->get_id() << " has been closed"
+                         << endl;
+                } else {
                     cerr << "Unable to close server side socket related to the client with id " << cl->get_id() <<
                          " Error message: " << strerror(errno) << endl;
                 }
@@ -114,8 +113,7 @@ namespace webserver {
                 if (client_index != -1) {
                     clients.erase(clients.begin() + client_index);
                     cout << "Client with id " << cl->get_id() << " has been removed from the clients vector" << endl;
-                }
-                else {
+                } else {
                     cout << "Client was not found in the clients vector" << endl;
                 }
 
@@ -127,8 +125,7 @@ namespace webserver {
                 if (!accept_connections) {
                     cerr << "Unable to receive message from client with id " << cl->get_id()
                          << ". Server has been shut down. Stop receiving messages from this client" << endl;
-                }
-                else {
+                } else {
                     cerr << "Error while receiving message from client with id " << cl->get_id()
                          << " Error message: " << strerror(errno) << endl;
                 }
@@ -144,7 +141,7 @@ namespace webserver {
         while (accept_connections) {
             current_client = make_shared<client>();
 
-            current_client->sock = accept(listener_socket, (struct sockaddr *) &server_address, &cli_size);
+            current_client->sock = accept(listener_socket, (struct sockaddr*) &server_address, &cli_size);
 
             if (current_client->sock != -1 && accept_connections) {
                 cout << "----------------------------" << endl << endl;
@@ -154,8 +151,7 @@ namespace webserver {
 
                 thread handling_thread(&tcp_server::connection_handler, this, current_client);
                 handling_thread.detach();
-            }
-            else {
+            } else {
                 cerr << "----------------------------" << endl << endl;
                 cerr << "[Server] Socket accept failed" << endl << endl;
                 cerr << strerror(errno) << endl;
@@ -171,8 +167,7 @@ namespace webserver {
             cout << "[Server Stop] Main server's listener socket has been closed" << endl;
             cout << "[Server Stop] Server has been terminated" << endl;
 
-        }
-        else {
+        } else {
             cerr << "[Server Stop] Unable to close main server's listener socket"
                  << " Error message: " << strerror(errno) << endl;
         }
@@ -182,8 +177,7 @@ namespace webserver {
             // client disconnect
             if (close(cl.sock) != -1) {
                 cout << "[Server Stop] Connection with client with id " << cl.get_id() << " has been closed" << endl;
-            }
-            else {
+            } else {
                 cerr << "[Server Stop] Unable to close connection with client with id " << cl.get_id()
                      << " Error message: " << strerror(errno) << endl;
             }

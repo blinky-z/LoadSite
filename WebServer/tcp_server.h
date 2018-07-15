@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include "client.h"
 #include <queue>
+
 using namespace std;
 
 namespace webserver {
@@ -45,6 +46,7 @@ namespace webserver {
         void start();
 
         void stop();
+
     private:
         void connection_handler(const shared_ptr<client>& cl);
 

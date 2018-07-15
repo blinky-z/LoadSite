@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <utility>
+
 using namespace std;
 
 namespace webserver {
@@ -14,6 +15,7 @@ namespace webserver {
 
         void add_parameterized_header_parameter(pair<string, map<string, string>>& parsed_parameterized_header,
                                                 const string& key, const string& value);
+
     public:
         pair<string, map<string, string>> parse_parameterized_header(const string& raw_parameterized_header);
     };

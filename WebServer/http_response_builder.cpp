@@ -66,7 +66,7 @@ namespace webserver {
     }
 
     void http_response_builder::add_response_header_fields
-            (const http_response &response, string &converted_to_string_response) {
+            (const http_response& response, string& converted_to_string_response) {
 
         const vector<http_header>& response_headers = response.get_response_headers();
 

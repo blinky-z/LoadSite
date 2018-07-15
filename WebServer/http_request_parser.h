@@ -1,5 +1,6 @@
 #ifndef WEB_HTTP_REQUEST_PARSER_H
 #define WEB_HTTP_REQUEST_PARSER_H
+
 #include "http_request.h"
 #include "http_parameterized_header_parser.h"
 #include <string>
@@ -52,11 +53,13 @@ namespace webserver {
 
         bool check_if_current_request_body_line_is_end_boundary(const string& line, const string& boundary);
 
-        void parse_formdata_body(http_request& post_request, const vector<string>& raw_request_body, const string& boundary);
+        void
+        parse_formdata_body(http_request& post_request, const vector<string>& raw_request_body, const string& boundary);
 
         void parse_post_request(http_request& post_request, const vector<string>& raw_request);
+
     public:
-        http_request parse_request(const vector<string> &raw_request);
+        http_request parse_request(const vector<string>& raw_request);
     };
 }
 

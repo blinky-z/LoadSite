@@ -15,8 +15,8 @@ int main() {
 
         string user_name;
 
-        //set user name if it exists
-            if (request.get_request_method() == "GET") {
+        // try to find user name
+        if (request.get_request_method() == "GET") {
             const vector<webserver::request_param> request_parameters = request.get_request_params();
             for (auto current_request_parameter : request_parameters) {
                 if (current_request_parameter.name == "name") {
@@ -48,16 +48,18 @@ int main() {
                 multiplier += current_char_number;
             }
 
-            for (unsigned int current_good_number = 0; current_good_number < user_name.length(); current_good_number++) {
+            for (unsigned int current_good_number = 0;
+                 current_good_number < user_name.length(); current_good_number++) {
                 json_response_body["items"][current_good_number]["name"] = user_name + to_string(current_good_number);
-                json_response_body["items"][current_good_number]["price"] = to_string((current_good_number + 1) * multiplier);
+                json_response_body["items"][current_good_number]["price"] = to_string(
+                        (current_good_number + 1) * multiplier);
             }
-        }
-        else {
+        } else {
             //fill with default goods
             unsigned int multiplier = 30;
 
-            for (unsigned int current_good_number = 0; current_good_number < default_goods_number; current_good_number++) {
+            for (unsigned int current_good_number = 0;
+                 current_good_number < default_goods_number; current_good_number++) {
                 json_response_body["items"][current_good_number]["name"] = "default" + to_string(current_good_number);
                 json_response_body["items"][current_good_number]["price"] = to_string(current_good_number * multiplier);
             }
@@ -94,8 +96,7 @@ int main() {
 
         if (good_name.length() % 2 == 0) {
             json_response_body["result"] = success_purchase_message;
-        }
-        else {
+        } else {
             json_response_body["result"] = failure_purchase_message;
         }
 

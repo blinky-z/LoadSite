@@ -12,13 +12,14 @@ namespace webserver {
         string shrinked_url;
 
         if (request_params_begin_position != string::npos) {
-            shrinked_url = url.substr(http_prefix_end_position, request_params_begin_position - http_prefix_end_position);
-        }
-        else {
+            shrinked_url = url.substr(http_prefix_end_position,
+                                      request_params_begin_position - http_prefix_end_position);
+        } else {
             shrinked_url = url.substr(http_prefix_end_position);
         }
 
-        size_t host_end_position = (shrinked_url.find('/') != string::npos ? shrinked_url.find('/') : shrinked_url.size());
+        size_t host_end_position = (shrinked_url.find('/') != string::npos ? shrinked_url.find('/')
+                                                                           : shrinked_url.size());
 
         shrinked_url = shrinked_url.substr(host_end_position);
 
@@ -33,8 +34,10 @@ namespace webserver {
 
     _Pragma("GCC diagnostic push")
     _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")
+
     web_handler http_router::generate_404_error_handler() {
-        function<webserver::http_response(webserver::http_request)> error_404_handler = [&](webserver::http_request request) {
+        function<webserver::http_response(webserver::http_request)> error_404_handler = [&](
+                webserver::http_request request) {
             webserver::http_response response;
 
             string error_message = "Not Found";
@@ -58,10 +61,12 @@ namespace webserver {
 
         return error_handler;
     }
+
     _Pragma("GCC diagnostic pop")
 
 
-    web_handler http_router::get_suitable_request_handler(const vector<web_handler>& handlers, const http_request& request) {
+    web_handler
+    http_router::get_suitable_request_handler(const vector<web_handler>& handlers, const http_request& request) {
         const string& client_request_method = request.get_request_method();
         const string& client_request_pattern = get_request_pattern(request);
 

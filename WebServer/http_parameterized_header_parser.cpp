@@ -23,7 +23,7 @@ namespace webserver {
         size_t index_begin_of_new_parameter = raw_parameterized_header.find(parameters_delimiter);
 
         string type = (index_begin_of_new_parameter != string::npos) ?
-                raw_parameterized_header.substr(0, index_begin_of_new_parameter) : raw_parameterized_header;
+                      raw_parameterized_header.substr(0, index_begin_of_new_parameter) : raw_parameterized_header;
 
         set_parameterized_header_type(parsed_parameterized_header, type);
 
@@ -38,12 +38,12 @@ namespace webserver {
             size_t begin_of_parameter = index_begin_of_new_parameter + 1;
             size_t end_of_parameter;
 
-            while(raw_parameterized_header[begin_of_parameter] == ' ') {
+            while (raw_parameterized_header[begin_of_parameter] == ' ') {
                 begin_of_parameter++;
             }
 
             while ((index_begin_of_new_parameter = raw_parameterized_header.find(';', index_begin_of_new_parameter + 1))
-                    != string::npos) {
+                   != string::npos) {
 
                 end_of_parameter = index_begin_of_new_parameter;
                 parameter = raw_parameterized_header.substr(begin_of_parameter, end_of_parameter - begin_of_parameter);
@@ -59,7 +59,7 @@ namespace webserver {
                 add_parameterized_header_parameter(parsed_parameterized_header, key, value);
 
                 begin_of_parameter = end_of_parameter + 1;
-                while(raw_parameterized_header[begin_of_parameter] == ' ') {
+                while (raw_parameterized_header[begin_of_parameter] == ' ') {
                     begin_of_parameter++;
                 }
             }
