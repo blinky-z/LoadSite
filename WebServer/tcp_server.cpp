@@ -165,8 +165,6 @@ namespace webserver {
 
         if (close(listener_socket) != -1) {
             cout << "[Server Stop] Main server's listener socket has been closed" << endl;
-            cout << "[Server Stop] Server has been terminated" << endl;
-
         } else {
             cerr << "[Server Stop] Unable to close main server's listener socket"
                  << " Error message: " << strerror(errno) << endl;
@@ -183,5 +181,7 @@ namespace webserver {
             }
         }
         mx.unlock();
+
+        cout << "[Server Stop] Server has been terminated" << endl;
     }
 }

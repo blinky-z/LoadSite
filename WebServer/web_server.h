@@ -17,7 +17,8 @@ using namespace std;
 //Реализация простого веб-сервера.
 //
 //Каждое соединенеи должно обрабатываться в отдельном thread (потоке).
-//Соединения на входе принимает отдельный, выделенный поток (thread), и передаёт исполнение созданному специально для этого запроса потоку.
+//Соединения на входе принимает отдельный, выделенный поток (thread),
+//и передаёт исполнение созданному специально для этого запроса потоку.
 //
 //Веб-сервер поддерживает описание Роутов (routes) с помощью лямбда-функций.
 //Веб-сервер сам инициализирует http_request объект и передаёт исполнение в лямбду.
@@ -77,7 +78,7 @@ namespace webserver {
 
                 //if body exists
                 if (!headers["content-length"].empty()) {
-                    long body_size = stol(headers["content-length"]);
+                    unsigned long body_size = stol(headers["content-length"]);
 
                     if (client_message.size() - index_end_of_headers != body_size) {
                         return false;
