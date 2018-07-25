@@ -1,17 +1,18 @@
-
 #ifndef WEB_CLIENT_H
 #define WEB_CLIENT_H
+
+#include <string>
 
 namespace webserver {
     class client {
     private:
-        int id;
+        unsigned long id;
     public:
         int sock;
 
-        void set_id(int client_id);
+        void set_id(unsigned long client_id);
 
-        int get_id();
+        unsigned long get_id();
     };
 }
 

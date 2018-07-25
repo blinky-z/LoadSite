@@ -3,184 +3,161 @@
 namespace webserver {
     tcp_server::tcp_server(unsigned short int PORT, const function<bool(string)>& is_full_message,
                            const function<string(string)>& convert_client_message) :
-            PORT(PORT), is_full_message(is_full_message),
-            convert_client_message(convert_client_message) {
-        accept_connections = true;
+            PORT(PORT), is_full_message(is_full_message), convert_client_message(convert_client_message) {
+        accept_allow = true;
     }
 
     void tcp_server::start() {
-        memset(&server_address, 0, sizeof(server_address));
-
         listener_socket = socket(AF_INET, SOCK_STREAM, 0);
 
+        struct sockaddr_in server_address{};
         server_address.sin_family = AF_INET;
         server_address.sin_port = htons(PORT);
-        server_address.sin_addr.s_addr = INADDR_ANY;
+        server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-        //For setsock opt (REUSEADDR)
         int reuse_port = 1;
-
-        //Avoid bind error if the socket was not closed last time;
-        setsockopt(listener_socket, SOL_SOCKET, SO_REUSEADDR, &reuse_port, sizeof(int));
+        setsockopt(listener_socket, SOL_SOCKET, SO_REUSEADDR, &reuse_port, sizeof(reuse_port));
 
         if (bind(listener_socket, (struct sockaddr*) &server_address, sizeof(server_address)) == -1) {
-            throw runtime_error("[Server] Binding failed");
+            throw runtime_error("Binding failed");
         }
 
-        cout << "[Server] Configuring was done" << endl;
-        cout << "[Server] Server was enabled" << endl;
-
-        if (listen(listener_socket, allowed_connections_number) == -1) {
-            throw runtime_error("[Server] Socket listening failed");
+        if (listen(listener_socket, ALLOWED_CONNS_NUM) == -1) {
+            throw runtime_error("Listening failed");
         }
 
-        cout << "[Server] Waiting for connections on port " << PORT << "..." << endl;
+        for (unsigned int thread_num = 1; thread_num <= MAX_EPOLL_THREADS; thread_num++) {
+            int EPoll = epoll_create1(0);
+            epoll_socket_list.emplace_back(EPoll);
+            thread listen_events_thread(&tcp_server::listen_events, this, EPoll);
+            listen_events_thread.detach();
+        }
 
-        take_requests();
+        cout << "Configuring was done" << endl;
+        cout << "Server was enabled" << endl;
+        cout << "Waiting for connections on port " << PORT << "..." << endl;
+
+        accept_connections();
     }
 
-    int tcp_server::find_client_index(const shared_ptr<client>& cl) {
-        for (unsigned int index = 0; index < clients.size(); index++) {
-            if (clients[index].get_id() == cl->get_id()) {
-                return index;
+    void tcp_server::set_client(int client_sock) {
+        uid++;
+
+        client* cl = new client();
+
+        cl->sock = client_sock;
+        cl->set_id(uid);
+
+        epoll_event client_event{};
+        client_event.data.ptr = cl;
+        client_event.events = EPOLLIN;
+
+        int epoll_sock = epoll_socket_list[epoll_socket_num];
+        if (epoll_ctl(epoll_sock, EPOLL_CTL_ADD, cl->sock, &client_event) != -1) {
+            cout << "New client [ID " << cl->get_id() << "] has been added to the Epoll instance" << endl;
+        } else {
+            cerr << "Error while adding new client [ID " << cl->get_id() << "] to the Epoll instance" << endl;
+        }
+        epoll_socket_num++;
+        epoll_socket_num = epoll_socket_num % MAX_EPOLL_THREADS;
+    }
+
+    void tcp_server::accept_connections() {
+        while (accept_allow) {
+            int client_sock = accept4(listener_socket, nullptr, nullptr, SOCK_NONBLOCK);
+
+            if (client_sock != -1 && accept_allow) {
+                cout << "New connection has been accepted" << endl;
+                set_client(client_sock);
+            } else {
+                if (!accept_allow && strcmp(strerror(errno), "SUCCESS") == 0) {
+                    cerr << "Discard connection: Server is terminating" << endl;
+                } else {
+                    cerr << "Socket accept failure: " << strerror(errno) << endl;
+                }
             }
         }
-        cerr << "Client with id " << cl->get_id() << " was not found" << endl;
-        return -1;
     }
 
-    void tcp_server::connection_handler(const shared_ptr<client>& cl) {
-        // add client to the clients <vector>
-        mx.lock();
+    void tcp_server::listen_events(int EPoll) {
+        while (accept_allow) {
+            struct epoll_event events[MAX_EVENTS];
+            int active_events_num = epoll_wait(EPoll, events, MAX_EVENTS, -1);
+            if (active_events_num == -1) {
+                cerr << "Error occurred while checking for an I/O events. Error message: "
+                     << strerror(errno) << endl;
+            }
 
-        cl->set_id(static_cast<int>(clients.size()));
-        clients.push_back(*cl);
-        cout << "New client with id " << cl->get_id() << " has been added to the clients list" << endl << endl;
+            for (int current_event = 0; current_event < active_events_num; current_event++) {
+                char read_buffer[1024];
+                memset(&read_buffer, '\0', sizeof(read_buffer));
 
-        mx.unlock();
+                client* client_data = static_cast<client*>(events[current_event].data.ptr);
 
-        char read_buffer[1024];
-        ssize_t message_size;
-        string received_message;
+                int current_socket = client_data->sock;
+                unsigned long current_socket_id = client_data->get_id();
 
-        while (accept_connections) {
-            memset(&read_buffer, 0, sizeof(read_buffer));
+                ssize_t recv_size = recv(current_socket, &read_buffer, sizeof(read_buffer) - 1, MSG_NOSIGNAL);
 
-            if ((message_size = recv(cl->sock, read_buffer, sizeof(read_buffer) - 1, 0)) > 0) {
-                cout << "[Server] Client's message has been received" << endl;
-                cout << "[Server] Client's message: " << endl;
-                cout << "----------------------------" << endl;
-                cout << read_buffer << endl;
-                cout << "----------------------------" << endl;
+                if (recv_size == 0) {
+                    cout << "Client [ID " << current_socket_id << "] has disconnected" << endl;
 
-                received_message.append(read_buffer, static_cast<unsigned long>(message_size));
+                    epoll_ctl(EPoll, EPOLL_CTL_DEL, current_socket, nullptr);
 
-                if (is_full_message(received_message)) {
-                    string response_message = convert_client_message(received_message);
-
-                    cout << "[Server] Server's response: " << endl;
-                    cout << "----------------------------" << endl;
-                    cout << response_message << endl;
-                    cout << "----------------------------" << endl << endl;
-
-                    if (send(cl->sock, response_message.c_str(), response_message.size(), 0) == -1) {
-                        cerr << "[Server] Message sending to client with id " << cl->get_id() << " failed" << endl;
-                        cerr << "============================" << endl << endl;
+                    if (close(current_socket) != -1) {
+                        cout << "Server side socket related to the client [ID " << current_socket_id
+                             << "] has been closed" << endl;
                     } else {
-                        cout << "[Server] Message has been sent to client with id " << cl->get_id() << endl;
-                        cout << "============================" << endl << endl;
+                        cerr << "Unable to close server side socket related to the client [ID " << current_socket_id <<
+                             "]. Error message: " << strerror(errno) << endl;
                     }
 
-                    received_message.clear();
-                }
-            }
-            if (message_size == 0) {
-                // client disconnect
-                cout << "Client with id " << cl->get_id() << " has been disconnected" << endl;
+                    delete client_data;
+                } else if (recv_size > 0) {
+                    string received_message;
+                    received_message.append(read_buffer, static_cast<unsigned long>(recv_size));
+                    memset(&read_buffer, '\0', sizeof(read_buffer));
 
-                if (close(cl->sock) != -1) {
-                    cout << "Server side socket related to the client with id " << cl->get_id() << " has been closed"
-                         << endl;
+                    cout << "Client's message has been received:" << endl << read_buffer << endl;
+
+                    while ((recv_size = recv(current_socket, &read_buffer, sizeof(read_buffer) - 1, MSG_NOSIGNAL)) >
+                           0 && errno != EWOULDBLOCK) {
+                        received_message.append(read_buffer, static_cast<unsigned long>(recv_size));
+
+                        cout << "[Read Cycle Server] Client's message has been received:" << endl << read_buffer
+                             << endl;
+
+                        memset(&read_buffer, '\0', sizeof(read_buffer));
+                    }
+
+                    string response = convert_client_message(received_message);
+
+                    cout << "Server's response:" << endl << response << endl;
+
+                    if (send(current_socket, response.c_str(), response.size(), MSG_NOSIGNAL) != -1) {
+                        cout << "Response has been sent to client [ID " << current_socket_id << "]" << endl;
+                    } else {
+                        cerr << "Response sending to client [ID " << current_socket_id << "] failed" << endl;
+                    }
                 } else {
-                    cerr << "Unable to close server side socket related to the client with id " << cl->get_id() <<
-                         " Error message: " << strerror(errno) << endl;
+                    cerr << "Error while receiving message from client [ID " << current_socket_id << "] " <<
+                         "Error message: " << strerror(errno) << endl;
                 }
-
-                //remove client from the clients <vector>
-                mx.lock();
-
-                int client_index = find_client_index(cl);
-                if (client_index != -1) {
-                    clients.erase(clients.begin() + client_index);
-                    cout << "Client with id " << cl->get_id() << " has been removed from the clients vector" << endl;
-                } else {
-                    cout << "Client was not found in the clients vector" << endl;
-                }
-
-                mx.unlock();
-
-                break;
-            }
-            if (message_size == -1) {
-                if (!accept_connections) {
-                    cerr << "Unable to receive message from client with id " << cl->get_id()
-                         << ". Server has been shut down. Stop receiving messages from this client" << endl;
-                } else {
-                    cerr << "Error while receiving message from client with id " << cl->get_id()
-                         << " Error message: " << strerror(errno) << endl;
-                }
-            }
-        }
-    }
-
-    void tcp_server::take_requests() {
-        shared_ptr<client> current_client;
-
-        socklen_t cli_size = sizeof(sockaddr_in);
-
-        while (accept_connections) {
-            current_client = make_shared<client>();
-
-            current_client->sock = accept(listener_socket, (struct sockaddr*) &server_address, &cli_size);
-
-            if (current_client->sock != -1 && accept_connections) {
-                cout << "----------------------------" << endl << endl;
-                cout << "[Server] New connection has been accepted" << endl << endl;
-                cout << "----------------------------" << endl << endl;
-
-
-                thread handling_thread(&tcp_server::connection_handler, this, current_client);
-                handling_thread.detach();
-            } else {
-                cerr << "----------------------------" << endl << endl;
-                cerr << "[Server] Socket accept failed" << endl << endl;
-                cerr << strerror(errno) << endl;
-                cerr << "----------------------------" << endl << endl;
             }
         }
     }
 
     void tcp_server::stop() {
-        accept_connections = false;
+        accept_allow = false;
+
+        cout << "[Server Stop] Server terminating has started" << endl;
 
         if (close(listener_socket) != -1) {
-            cout << "[Server Stop] Main server's listener socket has been closed" << endl;
+            cout << "[Server Stop] Listener socket has been closed" << endl;
         } else {
-            cerr << "[Server Stop] Unable to close main server's listener socket"
-                 << " Error message: " << strerror(errno) << endl;
+            cerr << "[Server Stop] Unable to close listener socket"
+                 << ". Error message: " << strerror(errno) << endl;
         }
-
-        mx.lock();
-        for (auto& cl : clients) {
-            // client disconnect
-            if (close(cl.sock) != -1) {
-                cout << "[Server Stop] Connection with client with id " << cl.get_id() << " has been closed" << endl;
-            } else {
-                cerr << "[Server Stop] Unable to close connection with client with id " << cl.get_id()
-                     << " Error message: " << strerror(errno) << endl;
-            }
-        }
-        mx.unlock();
 
         cout << "[Server Stop] Server has been terminated" << endl;
     }
