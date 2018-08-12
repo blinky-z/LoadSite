@@ -2,6 +2,7 @@
 #define WEB_TCP_SERVER_H
 
 #include <iostream>
+#include "client.h"
 #include <cstring>
 #include <unordered_set>
 #include <unistd.h>
@@ -18,7 +19,6 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
-#include "client.h"
 
 using namespace std;
 
@@ -27,9 +27,9 @@ namespace webserver {
     private:
         const unsigned int ALLOWED_CONNS_NUM = 512;
 
-        const unsigned int MAX_EVENTS = 1000;
+        const unsigned int MAX_EVENTS = 128;
 
-        const unsigned int MAX_EPOLL_THREADS = 128;
+        const unsigned int MAX_EPOLL_THREADS = 4;
 
         unsigned short int PORT;
 
@@ -46,7 +46,6 @@ namespace webserver {
         const function<bool(string)>& is_full_message;
 
         const function<string(string)>& convert_client_message;
-
     public:
         tcp_server(unsigned short int PORT, const function<bool(string)>& is_full_message,
                    const function<string(string)>& convert_client_message);
@@ -60,7 +59,7 @@ namespace webserver {
 
         void accept_connections();
 
-        void listen_events(int EPoll);
+        void listen_events(int EPoll, int thread_num);
     };
 }
 
